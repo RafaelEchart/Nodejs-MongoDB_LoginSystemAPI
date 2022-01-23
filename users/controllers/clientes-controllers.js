@@ -14,7 +14,7 @@ const Clientes = require("../../models/cliente");
 // const disk = require('../middleware/check-disk')
 
 //INICIAR SESION
-const iniciarSesion = async (req, res, next) => {
+const login = async (req, res, next) => {
   //MEMORIA
   let correoExistente;
   let passEsValida;
@@ -22,6 +22,7 @@ const iniciarSesion = async (req, res, next) => {
 
   //Variables req.body
   const { correo, contrasena } = req.body;
+  console.log(correo,contrasena)
 
   //Validacion de CORREO
   try {
@@ -40,20 +41,25 @@ const iniciarSesion = async (req, res, next) => {
     return next(error);
   }
 
+  
+  
   try {
     //return a boolean
     passEsValida = await bcrypt.compare(contrasena, correoExistente.contrasena);
   } catch (err) {
     return next(new HttpError("Credenciales erroneas, intente de nuevo."));
   }
-
+  
   if (!passEsValida) {
     const error = new HttpError(
       "Credenciales erroneas, intente de nuevo.",
       403
-    );
-    return next(error);
-  }
+      );
+      return next(error);
+    }
+    
+    console.log("okay")
+    console.log(correoExistente)
 
   //----------------//
   //Verificacion de data pasada
@@ -93,7 +99,7 @@ const iniciarSesion = async (req, res, next) => {
 };
 
 //CREAR CUENTA
-const crearCuenta = async (req, res, next) => {
+const newAccount = async (req, res, next) => {
   //MEMORIA
   let usuarioExistente;
   let hashedPass;
@@ -109,6 +115,7 @@ const crearCuenta = async (req, res, next) => {
 
   const { nombre, correo, secretMessage } = req.body;
   let { contrasena } = req.body;
+  contrasena = contrasena.toString()
 
   if (nombre.length < 5) {
     return next(
@@ -145,8 +152,6 @@ const crearCuenta = async (req, res, next) => {
   //------------------//
   //HASING PASS BCRYPT
 
-  contrasena = contrasena.toString();
-
   try {
     hashedPass = await bcrypt.hash(contrasena, 12);
   } catch (err) {
@@ -168,11 +173,11 @@ const crearCuenta = async (req, res, next) => {
   });
 
   //guardado de usuario nuevo
-  // try {
-  //   await nuevoUsuario.save();
-  // } catch (err) {
-  //   return next(new HttpError("Error tratando de crear nuevo usuario.", 500));
-  // }
+  try {
+    await nuevoUsuario.save();
+  } catch (err) {
+    return next(new HttpError("Error tratando de crear nuevo usuario.", 500));
+  }
 
   //Si la creacion es exitosa
   //Creamos un token para un login automatico.
@@ -202,7 +207,6 @@ const crearCuenta = async (req, res, next) => {
     correo: nuevoUsuario.correo,
     // enviamos siempre el token creado
     token: token,
-    // token: "Usuario creado!",
   });
 };
 
@@ -243,6 +247,6 @@ const getInfoCuenta = async (req, res, next) => {
   });
 };
 
-exports.iniciarSesion = iniciarSesion;
-exports.crearCuenta = crearCuenta;
+exports.login = login;
+exports.newAccount = newAccount;
 exports.getInfoCuenta = getInfoCuenta;
