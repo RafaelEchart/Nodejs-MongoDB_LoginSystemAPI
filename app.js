@@ -37,8 +37,7 @@ app.use((req, res, next) => {
   throw error;
 });
 
-//CREDENTIALS
-//coneccion con mongo db
+
 
 mongoose.set("useCreateIndex", true);
 mongoose.set('useFindAndModify', false);

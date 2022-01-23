@@ -21,7 +21,7 @@ module.exports = (req, res, next) => {
     //si sobrevivimos ambos procesos y si tenemos TOKEN
     //el TOKEN puede ser invalido
     //validacion ↓
-    const decodedTOKEN = jwt.verify(token, "CLAVENOCOMPARTIR_WEBFACILADMINSIDE"); // usar la misma clave secreta que cuando se genero
+    const decodedTOKEN = jwt.verify(token, "DO_NOT_SHARE_INSERT_HERE_PRIVATE_KEY"); // usar la misma clave secreta que cuando se genero
 
     // enviamos userID dentro de la peticion del cliente
     req.userData = { clienteId: decodedTOKEN.clienteId };

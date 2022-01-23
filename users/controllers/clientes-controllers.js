@@ -71,7 +71,7 @@ const iniciarSesion = async (req, res, next) => {
         email: correoExistente.correo,
       },
       //CLAVE SECRETA
-      "CLAVENOCOMPARTIR_WEBFACILSTORESIDE",
+      "DO_NOT_SHARE_INSERT_HERE_PRIVATE_KEY",
       { expiresIn: "48h" }
     );
     //------------------------------------//
@@ -159,13 +159,13 @@ const crearCuenta = async (req, res, next) => {
   console.log(nombre, correo, hashedPass, secretMessage, fecha);
   //creacion de usuario nuevo
 
-  // const nuevoUsuario = new Clientes({
-  //   nombre: nombre,
-  //   correo: correo,
-  //   fechaRegistro: fecha[0],
-  //   contrasena: hashedPass,
-  //   secretMessage: secretMessage
-  // });
+  const nuevoUsuario = new Clientes({
+    nombre: nombre,
+    correo: correo,
+    fechaRegistro: fecha[0],
+    contrasena: hashedPass,
+    secretMessage: secretMessage
+  });
 
   //guardado de usuario nuevo
   // try {
@@ -177,32 +177,32 @@ const crearCuenta = async (req, res, next) => {
   //Si la creacion es exitosa
   //Creamos un token para un login automatico.
 
-  // try {
-  //   //----------------------------------//
-  //   //informacion que queremos que contenga
-  //   //clave super secreta
-  //   //tiempo de expiracion(consultar los tipos de reglas que se pueden aplicar)
-  //   token = jwt.sign(
-  //     {
-  //       clienteId: nuevoUsuario._id,
-  //       email: nuevoUsuario.correo,
-  //     },
-  //     //CLAVE SECRETA
-  //     "CLAVENOCOMPARTIR_WEBFACILSTORESIDE",
-  //     { expiresIn: "48h" }
-  //   );
-  //   //------------------------------------//
-  //   //------------------------------------//
-  // } catch (err) {
-  //   return next(new HttpError("Ocurrieron problemas en el servidor.", 500));
-  // }
+  try {
+    //----------------------------------//
+    //informacion que queremos que contenga
+    //clave super secreta
+    //tiempo de expiracion(consultar los tipos de reglas que se pueden aplicar)
+    token = jwt.sign(
+      {
+        clienteId: nuevoUsuario._id,
+        email: nuevoUsuario.correo,
+      },
+      //CLAVE SECRETA
+      "DO_NOT_SHARE_INSERT_HERE_PRIVATE_KEY",
+      { expiresIn: "48h" }
+    );
+    //------------------------------------//
+    //------------------------------------//
+  } catch (err) {
+    return next(new HttpError("Ocurrieron problemas en el servidor.", 500));
+  }
 
   res.status(200).json({
-    // clienteId: nuevoUsuario._id,
-    // correo: nuevoUsuario.correo,
-    //enviamos siempre el token creado
-    // token: token,
-    token: "Usuario creado!",
+    clienteId: nuevoUsuario._id,
+    correo: nuevoUsuario.correo,
+    // enviamos siempre el token creado
+    token: token,
+    // token: "Usuario creado!",
   });
 };
 

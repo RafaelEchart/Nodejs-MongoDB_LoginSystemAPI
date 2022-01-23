@@ -16,7 +16,7 @@ router.post("/iniciar-sesion",
     clientesControllers.iniciarSesion);
 
 //CREAR USUARIO
-router.post("/crear-cuenta",
+router.post("/new-account",
     [check("nombre").not().isEmpty(),
     check("secretMessage").not().isEmpty(),
     check("correo").normalizeEmail().isEmail(),
