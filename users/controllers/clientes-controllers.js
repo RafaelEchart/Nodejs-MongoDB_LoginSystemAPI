@@ -1,82 +1,70 @@
 const express = require("express");
-const router = express.Router();
-//Librerias
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
 const mongoose = require("mongoose");
-
-const fs = require("fs");
 const HttpError = require("../../models/http-error");
 const Clientes = require("../../models/cliente");
 
-// const disk = require('../middleware/check-disk')
-
-//INICIAR SESION
+//LOGIN CONTROLLER
 const login = async (req, res, next) => {
-  //MEMORIA
-  let correoExistente;
-  let passEsValida;
+  //MEMORY
+  let validEmail;
+  let validPassword;
   let token;
 
-  //Variables req.body
-  const { correo, contrasena } = req.body;
-  console.log(correo,contrasena)
+  //RECIEVED VARIABLES
+  const { email, password } = req.body;
 
-  //Validacion de CORREO
+  //EMAIL VALIDATION
   try {
-    correoExistente = await Clientes.findOne({ correo: correo });
+    validEmail = await Clientes.findOne({ email: email });
   } catch (err) {
     return next(
-      new HttpError("Error al iniciar sesion, intente de nuevo", 500)
+      new HttpError("Error connecting to the server.", 500)
     );
   }
 
-  if (!correoExistente) {
+  if (!validEmail) {
     const error = new HttpError(
-      "Credenciales erroneas, intente de nuevo.",
+      "Invalid email error.",
       403
     );
     return next(error);
   }
 
-  
-  
   try {
-    //return a boolean
-    passEsValida = await bcrypt.compare(contrasena, correoExistente.contrasena);
+    //PASS VALIDATION
+    validPassword = await bcrypt.compare(password, validEmail.password);
   } catch (err) {
-    return next(new HttpError("Credenciales erroneas, intente de nuevo."));
+    return next(new HttpError("Bcrypt failed."));
   }
   
-  if (!passEsValida) {
+  if (!validPassword) {
     const error = new HttpError(
-      "Credenciales erroneas, intente de nuevo.",
+      "Invalid password validation.",
       403
       );
       return next(error);
     }
     
-    console.log("okay")
-    console.log(correoExistente)
 
   //----------------//
-  //Verificacion de data pasada
+  //AFTER ALL DATA HAS BEEN VERIFIED
 
   //TOKEN
 
   try {
     //----------------------------------//
-    //informacion que queremos que contenga
-    //clave super secreta
-    //tiempo de expiracion(consultar los tipos de reglas que se pueden aplicar)
+    //TOKEN INFORMATION
+    //SUPER SECRET KEY
+    //TOKEN TIME VALIDATIONN
     token = jwt.sign(
       {
-        clienteId: correoExistente._id,
-        email: correoExistente.correo,
+        clienteId: validEmail._id,
+        email: validEmail.email,
       },
-      //CLAVE SECRETA
+      //SECRET KEY
       "DO_NOT_SHARE_INSERT_HERE_PRIVATE_KEY",
       { expiresIn: "48h" }
     );
@@ -85,67 +73,67 @@ const login = async (req, res, next) => {
   } catch (err) {
     return next(
       new HttpError(
-        "Error al intentar iniciar la sesion. Intente de nuevo",
+        "Error at creating JWT.",
         500
       )
     );
   }
 
   res.status(200).json({
-    clienteId: correoExistente._id,
-    correo: correoExistente.correo,
+    userId: validEmail._id,
+    email: validEmail.email,
     token: token,
   });
 };
 
-//CREAR CUENTA
+//SIGN UP CONTROLLER
 const newAccount = async (req, res, next) => {
-  //MEMORIA
-  let usuarioExistente;
+  //MEMORY
+  let foundEmail;
   let hashedPass;
   let token;
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
-      new HttpError("Informacion incorrecta, revisa los campos."),
+      new HttpError("Check the fields."),
       422
     );
   }
 
-  const { nombre, correo, secretMessage } = req.body;
-  let { contrasena } = req.body;
-  contrasena = contrasena.toString()
+  const { name, email, secretMessage } = req.body;
+  let { password } = req.body;
+  password = password.toString()
 
-  if (nombre.length < 5) {
+  if (name.length < 5) {
     return next(
-      new HttpError("El nombre debe contener al menos 5 letras.", 500)
+      new HttpError("Name must have at least 5 characters", 500)
     );
   }
 
-  if (contrasena.length < 5) {
+  if (password.length < 5) {
     return next(
-      new HttpError("La contraseña debe contener al menos 5 caracteres.", 500)
+      new HttpError("Password must have at least 5 characters", 500)
     );
   }
 
   if (secretMessage.length < 5) {
     return next(
       new HttpError(
-        "El secretMessage debe contener al menos 5 caracteres.",
+        "Secret Message must have at least 5 characters",
         500
       )
     );
   }
 
   try {
-    usuarioExistente = await Clientes.findOne({ correo: correo });
+    foundEmail = await Clientes.findOne({ email: email });
   } catch (err) {
-    return next(new HttpError("No se pudo conectar a la base de datos.", 500));
+    return next(new HttpError("Error in database connection.", 500));
   }
-  if (usuarioExistente) {
+  if (foundEmail) {
     return next(
-      new HttpError("Correo ya fue registrado, intente con uno diferente", 500)
+      new HttpError("This email alredy exists!", 500)
     );
   }
 
@@ -153,7 +141,7 @@ const newAccount = async (req, res, next) => {
   //HASING PASS BCRYPT
 
   try {
-    hashedPass = await bcrypt.hash(contrasena, 12);
+    hashedPass = await bcrypt.hash(password, 12);
   } catch (err) {
     console.log(err);
     return next(new HttpError("Could not hash, please try again"));
@@ -161,51 +149,50 @@ const newAccount = async (req, res, next) => {
 
   //fecha de creacion de usuario
   const fecha = new Date().toLocaleString("en-US").split(",");
-  console.log(nombre, correo, hashedPass, secretMessage, fecha);
   //creacion de usuario nuevo
 
-  const nuevoUsuario = new Clientes({
-    nombre: nombre,
-    correo: correo,
-    fechaRegistro: fecha[0],
-    contrasena: hashedPass,
+  const newUser = new Clientes({
+    name: name,
+    email: email,
+    date: fecha[0],
+    password: hashedPass,
     secretMessage: secretMessage
   });
 
   //guardado de usuario nuevo
   try {
-    await nuevoUsuario.save();
+    await newUser.save();
   } catch (err) {
-    return next(new HttpError("Error tratando de crear nuevo usuario.", 500));
+    console.log(err)
+    return next(new HttpError("Error creating the new user.", 500));
   }
 
-  //Si la creacion es exitosa
-  //Creamos un token para un login automatico.
+  //If creation is successful
+  //We create the JWT to automatic login
 
   try {
     //----------------------------------//
-    //informacion que queremos que contenga
-    //clave super secreta
-    //tiempo de expiracion(consultar los tipos de reglas que se pueden aplicar)
+    //TOKEN INFORMATION
+    //SUPER SECRET INFORMATION
+    //EXPIRATION TIME 
     token = jwt.sign(
       {
-        clienteId: nuevoUsuario._id,
-        email: nuevoUsuario.correo,
+        clienteId: newUser._id,
+        email: newUser.email,
       },
-      //CLAVE SECRETA
+      //SECRET KEY
       "DO_NOT_SHARE_INSERT_HERE_PRIVATE_KEY",
       { expiresIn: "48h" }
     );
-    //------------------------------------//
-    //------------------------------------//
+    
   } catch (err) {
-    return next(new HttpError("Ocurrieron problemas en el servidor.", 500));
+    return next(new HttpError("SERVER ERRORS HAVE OCCURED", 500));
   }
 
   res.status(200).json({
-    clienteId: nuevoUsuario._id,
-    correo: nuevoUsuario.correo,
-    // enviamos siempre el token creado
+    userID: newUser._id,
+    email: newUser.email,
+    // we return the token to the client for authentication purposes
     token: token,
   });
 };

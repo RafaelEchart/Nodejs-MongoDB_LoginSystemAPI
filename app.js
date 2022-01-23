@@ -1,11 +1,6 @@
 const mongoose = require("mongoose");
-//filesystem para manejar archivos en server (ELIMINAR POR ERROR MULTER)
-const fs = require("fs");
-//path for images route
-const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
-
 const HttpError = require("./models/http-error");
 
 //USERS
@@ -31,11 +26,12 @@ app.use((req, res, next) => {
 
 app.use("/api/users", usersRoutes)
 
-//errores de rutas no especificadas
+//Error for unfound routes
 app.use((req, res, next) => {
   const error = new HttpError("Could not find this route", 404);
   throw error;
 });
+
 
 
 mongoose.set("useCreateIndex", true);

@@ -9,24 +9,24 @@ const clientesControllers = require("../controllers/clientes-controllers");
 
 const router = express.Router();
 
-//INICIAR SESION
+//LOG IN ROUTE TO CONTROLLER
 router.post("/log-in",
     [check("correo").not().isEmpty(),
     check("contrasena").not().isEmpty()],
     clientesControllers.login);
 
-//CREAR USUARIO
+//NEW ACCOUNT ROUTE TO CONTROLLER
 router.post("/new-account",
-    [check("nombre").not().isEmpty(),
+    [check("name").not().isEmpty(),
     check("secretMessage").not().isEmpty(),
-    check("correo").normalizeEmail().isEmail(),
-    check("contrasena").not().isEmpty()],
+    check("email").normalizeEmail().isEmail(),
+    check("password").not().isEmpty()],
      clientesControllers.newAccount);
 
 
 router.use(checkAuth);
 
-//RUTAS CON AUTORIZACION
+//ROUTES WITH AUTHENTICATION
 router.get("/info-cuenta", clientesControllers.getInfoCuenta);
 
 //EXPORT ROUTER

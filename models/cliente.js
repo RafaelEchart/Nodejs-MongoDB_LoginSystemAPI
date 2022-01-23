@@ -4,14 +4,14 @@ const uniqueValidator = require("mongoose-unique-validator");
 const Schema = mongoose.Schema;
 
 const clienteSchema = new Schema({
-  nombre: { type: String, required: true },
+  name: { type: String, required: true },
   //Email is an information que requerimos muy rapido asi que agregamos
   // un INDEX con unique.
-  correo: { type: String, required: true, unique: true },
-  contrasena: { type: String, require: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, require: true },
   secretMessage: { type: String, require: true },
   // celular: { type: String, require: true },
-  fechaRegistro: { type: String, require: true },
+  date: { type: String, require: true },
   
   //definimos el tipo para poder popularlo con el places database y usamos array para
   //identificar que tendremos varios objectID en nuestro user
