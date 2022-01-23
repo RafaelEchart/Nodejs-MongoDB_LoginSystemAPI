@@ -11,7 +11,6 @@ const fs = require("fs");
 const HttpError = require("../../models/http-error");
 const Clientes = require("../../models/cliente");
 
-
 // const disk = require('../middleware/check-disk')
 
 //INICIAR SESION
@@ -108,7 +107,8 @@ const crearCuenta = async (req, res, next) => {
     );
   }
 
-  const { nombre, cedula, correo, contrasena, celular } = req.body;
+  const { nombre, correo, secretMessage } = req.body;
+  let { contrasena } = req.body;
 
   if (nombre.length < 5) {
     return next(
@@ -116,17 +116,18 @@ const crearCuenta = async (req, res, next) => {
     );
   }
 
-  if (cedula.length !== 10) {
-    return next(new HttpError("Debe ingresar una cedula valida.", 500));
-  }
-
-  if (celular.length !== 10) {
-    return next(new HttpError("Debe ingresar una celular valido.", 500));
-  }
-
   if (contrasena.length < 5) {
     return next(
       new HttpError("La contraseña debe contener al menos 5 caracteres.", 500)
+    );
+  }
+
+  if (secretMessage.length < 5) {
+    return next(
+      new HttpError(
+        "El secretMessage debe contener al menos 5 caracteres.",
+        500
+      )
     );
   }
 
@@ -144,63 +145,64 @@ const crearCuenta = async (req, res, next) => {
   //------------------//
   //HASING PASS BCRYPT
 
+  contrasena = contrasena.toString();
+
   try {
     hashedPass = await bcrypt.hash(contrasena, 12);
   } catch (err) {
-    return next(new HttpError("Could not create user, please try again"));
+    console.log(err);
+    return next(new HttpError("Could not hash, please try again"));
   }
 
   //fecha de creacion de usuario
   const fecha = new Date().toLocaleString("en-US").split(",");
+  console.log(nombre, correo, hashedPass, secretMessage, fecha);
   //creacion de usuario nuevo
 
-  const nuevoUsuario = new Clientes({
-    nombre: nombre,
-    correo: correo,
-    cedula: cedula,
-    celular: celular,
-    fechaRegistro: fecha[0],
-    contrasena: hashedPass,
-    pedidos: [],
-    direccion: [],
-    infofactura: [],
-  });
+  // const nuevoUsuario = new Clientes({
+  //   nombre: nombre,
+  //   correo: correo,
+  //   fechaRegistro: fecha[0],
+  //   contrasena: hashedPass,
+  //   secretMessage: secretMessage
+  // });
 
   //guardado de usuario nuevo
-  try {
-    await nuevoUsuario.save();
-  } catch (err) {
-    return next(new HttpError("Error tratando de crear nuevo usuario.", 500));
-  }
+  // try {
+  //   await nuevoUsuario.save();
+  // } catch (err) {
+  //   return next(new HttpError("Error tratando de crear nuevo usuario.", 500));
+  // }
 
   //Si la creacion es exitosa
   //Creamos un token para un login automatico.
 
-  try {
-    //----------------------------------//
-    //informacion que queremos que contenga
-    //clave super secreta
-    //tiempo de expiracion(consultar los tipos de reglas que se pueden aplicar)
-    token = jwt.sign(
-      {
-        clienteId: nuevoUsuario._id,
-        email: nuevoUsuario.correo,
-      },
-      //CLAVE SECRETA
-      "CLAVENOCOMPARTIR_WEBFACILSTORESIDE",
-      { expiresIn: "48h" }
-    );
-    //------------------------------------//
-    //------------------------------------//
-  } catch (err) {
-    return next(new HttpError("Ocurrieron problemas en el servidor.", 500));
-  }
+  // try {
+  //   //----------------------------------//
+  //   //informacion que queremos que contenga
+  //   //clave super secreta
+  //   //tiempo de expiracion(consultar los tipos de reglas que se pueden aplicar)
+  //   token = jwt.sign(
+  //     {
+  //       clienteId: nuevoUsuario._id,
+  //       email: nuevoUsuario.correo,
+  //     },
+  //     //CLAVE SECRETA
+  //     "CLAVENOCOMPARTIR_WEBFACILSTORESIDE",
+  //     { expiresIn: "48h" }
+  //   );
+  //   //------------------------------------//
+  //   //------------------------------------//
+  // } catch (err) {
+  //   return next(new HttpError("Ocurrieron problemas en el servidor.", 500));
+  // }
 
   res.status(200).json({
-    clienteId: nuevoUsuario._id,
-    correo: nuevoUsuario.correo,
+    // clienteId: nuevoUsuario._id,
+    // correo: nuevoUsuario.correo,
     //enviamos siempre el token creado
-    token: token,
+    // token: token,
+    token: "Usuario creado!",
   });
 };
 
@@ -244,5 +246,3 @@ const getInfoCuenta = async (req, res, next) => {
 exports.iniciarSesion = iniciarSesion;
 exports.crearCuenta = crearCuenta;
 exports.getInfoCuenta = getInfoCuenta;
-
-

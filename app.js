@@ -39,17 +39,6 @@ app.use((req, res, next) => {
 
 //CREDENTIALS
 //coneccion con mongo db
-mongoose
-  .connect(
-    `mongodb+srv://test:test@testserver.bs7pw.mongodb.net/nombredelnegocio?retryWrites=true&w=majority`,
-    { useUnifiedTopology: true, useNewUrlParser: true }
-  )
-  .then(() => {
-    app.listen(5000, console.log("Server listening on port 5000"));
-  })
-  .catch((err) => {
-    console.log(err);
-  });
 
 mongoose.set("useCreateIndex", true);
 mongoose.set('useFindAndModify', false);

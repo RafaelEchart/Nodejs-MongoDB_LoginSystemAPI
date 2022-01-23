@@ -18,7 +18,7 @@ router.post("/iniciar-sesion",
 //CREAR USUARIO
 router.post("/crear-cuenta",
     [check("nombre").not().isEmpty(),
-    check("cedula").not().isEmpty(),
+    check("secretMessage").not().isEmpty(),
     check("correo").normalizeEmail().isEmail(),
     check("contrasena").not().isEmpty()],
      clientesControllers.crearCuenta);

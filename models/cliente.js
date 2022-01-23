@@ -11,7 +11,7 @@ const clienteSchema = new Schema({
   contrasena: { type: String, require: true },
   secretMessage: { type: String, require: true },
   // celular: { type: String, require: true },
-  // fechaRegistro: { type: String, require: true },
+  fechaRegistro: { type: String, require: true },
   
   //definimos el tipo para poder popularlo con el places database y usamos array para
   //identificar que tendremos varios objectID en nuestro user
